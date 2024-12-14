@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restoran Mughni</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+    }
+    header {
+      background-color: #ff8c00;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 2rem 0;
+    }
+    .menu-item {
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      margin: 1rem;
+      box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+      width: 250px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .menu-item img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+    }
+    .menu-item h3 {
+      margin: 0.5rem 0;
+      font-size: 1.2rem;
+      color: #333;
+    }
+    .menu-item p {
+      font-size: 0.9rem;
+      color: #666;
+      margin: 0.5rem;
+    }
+    .menu-item .price {
+      font-weight: bold;
+      color: #ff4500;
+      margin-bottom: 0.5rem;
+    }
+    .menu-item button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      margin: 0.5rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .menu-item button:hover {
+      background-color: #218838;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background-color: #333;
+      color: white;
+      margin-top: 2rem;
+    }
+    /* Footer Styling */
+footer {
+  background-color: #333;
+  color: #fff;
+  padding: 20px 0;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+footer a {
+  color: #ff6347; /* Warna orange untuk link */
+  text-decoration: none;
+  font-weight: bold;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+footer i {
+  margin-right: 8px;
+}
+
+footer .footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9em;
+}
+
+footer .footer-bottom {
+  margin-top: 15px;
+  border-top: 1px solid #555;
+  padding-top: 10px;
+  color: #aaa;
+  font-size: 0.8em;
+}
+
+/* Membuat background lebih kontras */
+footer .footer-content > p {
+  margin: 5px 0;
+} 
+  </style>
+</head>
+<body>
+  <header>
+    🍽️ <strong>Restoran Mughni</strong> - Pilih Menu Favoritmu!
+  </header>
+  <div class="container" id="menu-container"></div>
+ 
+<!-- Tombol Keranjang -->
+<div style="text-align: right; margin: 10px;">
+    <button id="cart-button" onclick="toggleCart()" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+      <i class="fas fa-shopping-cart"></i> Pesanan (<span id="cart-count">0</span>)
+    </button>
+  </div>  
+  
+  <!-- Container Menu -->
+  <div class="container" id="menu-container"></div>
+  
+  <!-- Keranjang Pesanan -->
+  <div id="cart-container" style="display: none; margin: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+    <!-- Keranjang pesanan akan tampil di sini -->
+  </div>  
+  
+  <!-- Footer -->
+  <footer>
+    <div>
+      <p>
+        <i class="fab fa-instagram"></i> Instagram: 
+        <a href="https://instagram.com/restoran_mughni" target="_blank">@restoran_mughni</a>
+      </p>
+      <p>
+        <i class="fas fa-map-marker-alt"></i> Alamat: Jakarta Utara, DKI Jakarta, Indonesia
+      </p>
+    </div>
+    &copy; 2024 Restoran Mughni | Semua Hak Dilindungi
+  </footer>  
+
+  <script>
+    // Ambil data menu dari server
+    fetch('http://localhost:3000/menu')
+      .then(response => response.json())
+      .then(data => {
+        const container = document.getElementById('menu-container');
+        data.forEach(item => {
+          const menuItem = document.createElement('div');
+          menuItem.className = 'menu-item';
+          menuItem.innerHTML = `
+            <img src="${item.gambar}" alt="${item.nama_menu}">
+            <h3>${item.nama_menu}</h3>
+            <p>${item.deskripsi}</p>
+            <p class="price">Rp ${item.harga.toLocaleString('id-ID')}</p>
+            <button onclick="addToCart('${item.nama_menu}', ${item.harga})">
+            <i class="fas fa-shopping-cart"></i> Tambah ke Keranjang
+            </button>
+`;
+          container.appendChild(menuItem);
+        });
+      });
+
+      let cart = []; // Array untuk menyimpan item pesanan
+
+ 
+// Fungsi menambahkan item ke keranjang
+function addToCart(nama_menu, harga) {
+  const itemIndex = cart.findIndex(item => item.nama_menu === nama_menu);
+
+  if (itemIndex > -1) {
+    cart[itemIndex].quantity += 1; 
+  } else {
+    cart.push({ nama_menu, harga, quantity: 1 }); 
+  }
+
+  updateCartDisplay();
+}
+
+// Fungsi mengurangi item dari keranjang
+function removeFromCart(nama_menu) {
+  const itemIndex = cart.findIndex(item => item.nama_menu === nama_menu);
+
+  if (itemIndex > -1) {
+    cart[itemIndex].quantity -= 1;
+    if (cart[itemIndex].quantity === 0) {
+      cart.splice(itemIndex, 1);
+    }
+  }
+
+  updateCartDisplay();
+}
+
+// Fungsi memperbarui tampilan keranjang
+function updateCartDisplay() {
+  const cartCount = document.getElementById("cart-count");
+  const cartContainer = document.getElementById("cart-container");
+
+  const totalQuantity = cart.reduce((total, item) => total + item.quantity, 0);
+  cartCount.textContent = totalQuantity;
+
+  if (cart.length === 0) {
+    cartContainer.innerHTML = "<h2>Keranjang Kosong</h2>";
+    return;
+  }
+
+  cartContainer.innerHTML = `
+    <h2>Keranjang Pesanan</h2>
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background-color: #f2f2f2;">
+          <th style="padding: 10px; border: 1px solid #ddd;">Menu</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Jumlah</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Harga</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${cart
+          .map(
+            item => `
+          <tr>
+            <td style="padding: 10px; border: 1px solid #ddd;">${decodeURIComponent(item.nama_menu)}</td>
+            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${item.quantity}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">Rp ${(item.harga * item.quantity).toLocaleString("id-ID")}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">
+              <button onclick="addToCart('${encodeURIComponent(item.nama_menu)}', ${item.harga})" style="padding: 5px 10px; background-color: #28a745; color: white; border: none; border-radius: 5px;">+</button>
+              <button onclick="removeFromCart('${encodeURIComponent(item.nama_menu)}')" style="padding: 5px 10px; background-color: #dc3545; color: white; border: none; border-radius: 5px;">-</button>
+            </td>
+          </tr>
+        `
+          )
+          .join("")}
+      </tbody>
+    </table>
+    <p style="margin-top: 10px; font-weight: bold;">Total Harga: Rp ${cart
+      .reduce((total, item) => total + item.harga * item.quantity, 0)
+      .toLocaleString("id-ID")}</p>
+  `;
+}
+
+
+// Fungsi menampilkan/menyembunyikan keranjang
+function toggleCart() {
+  const cartContainer = document.getElementById("cart-container");
+  cartContainer.style.display =
+    cartContainer.style.display === "none" ? "block" : "none";
+}
+</script>
+</body>
+</html>
